@@ -1,0 +1,32 @@
+AAAAAA
+---
+tags:
+  - User
+parameters:
+  - in: body
+    name: body
+    schema:
+      properties:
+        name:
+          type: string
+
+responses:
+  200:
+    schema:
+      properties:
+        code:
+          type: integer
+          default: 200
+        data:
+          type: object
+          properties:
+            permissions:
+              type: string
+            username:
+              type: string
+            avatar:
+              type: string
+        msg:
+          type: string
+          default: success
+    description: 请求成功

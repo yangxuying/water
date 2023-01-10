@@ -1,0 +1,10 @@
+workers = 5
+worker_class = "gevent"
+bind = "0.0.0.0:80"
+worker_connections = 2000
+pidfile = 'gunicorn.pid'
+accesslog = 'gunicorn_acess.log'
+errorlog = 'gunicorn_error.log'
+loglevel = 'info'
+reload = True
+raw_env = ["FLASK_SETTING=Production"]

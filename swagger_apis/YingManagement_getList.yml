@@ -1,0 +1,41 @@
+
+---
+tags:
+  - YingManagement
+parameters:
+  - in: body
+    name: body
+    schema:
+      properties:
+        pageNo:
+          type: integer
+        pageSize:
+          type: integer
+        name:
+          type: string
+        date:
+          type: string
+
+responses:
+  200:
+    schema:
+      properties:
+        code:
+          type: integer
+          default: 200
+        pageNo:
+          type: integer
+          default: 1
+        pageSize:
+          type: integer
+          default: 10
+        totalCount:
+          type: integer
+          default: 0
+        data:
+          type: list
+          default: []
+        msg:
+          type: string
+          default: success
+    description: 请求成功

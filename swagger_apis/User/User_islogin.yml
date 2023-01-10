@@ -1,0 +1,18 @@
+
+---
+tags:
+  - User
+
+responses:
+  200:
+    schema:
+      properties:
+        code:
+          type: integer
+          default: 200
+        is_login:
+          type: boolean
+        msg:
+          type: string
+          default: success
+    description: 请求成功

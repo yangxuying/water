@@ -1,0 +1,19 @@
+
+---
+tags:
+  - YingManagement
+
+responses:
+  200:
+    schema:
+      properties:
+        code:
+          type: integer
+          default: 200
+        data:
+          type: list
+          default: []
+        msg:
+          type: string
+          default: success
+    description: 请求成功

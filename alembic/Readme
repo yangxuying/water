@@ -1,0 +1,12 @@
+first:
+    pip install alembic and
+    alembic init alembic
+second:
+    change target_metadata and
+    setting config.set_main_option('sqlalchemy.url', 'driver://user:pass@localhost/dbname'))
+    in env.py
+third:
+    cd project directory
+    run
+        1. alembic -c ./alembic/alembic.ini revision --autogenerate -m "add some notes"
+        2. alembic -c ./alembic/alembic.ini upgrade head
