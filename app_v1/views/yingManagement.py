@@ -223,109 +223,68 @@ def YingManagement_uploadFile():
         :return:
     """
     res = dict()
+    success_num = 0
+    error_num = 0
+    skip_num = 0
 
     # if session.get('role'):
-    table = getattr(models, api.name)
-    file = request.files.get('file')
-    data = pd.read_excel(file).to_dict('list')
-
-    # 检查excel格式和获取excel数据
     try:
-        if data.get('断面名称') is None:
-            raise Exception('未找到断面名称列')
-        name_list = [i if not pd.isna(i) else None for i in data.get('断面名称')]
-        while None in name_list:
-            name_list.remove(None)
+        table = getattr(models, api.name)
+        file = request.files.get('file')
+        data = pd.read_excel(file).to_dict('records')
 
-        if data.get('年') is None:
-            raise Exception('未找到测量时间列')
-        year_list = [i if not pd.isna(i) else None for i in data.get('年')]
-        while None in year_list:
-            year_list.remove(None)
+        # {'断面名称': '例子', '测量时间': '2023-01', '溶解氧': 9.99, '高锰酸盐指数': 9.99, '五日生化需氧量': 9.99, '氨氮': 9.99, '总磷': 9.99}
+        title = pd.read_excel('static/excel/template.xlsx').to_dict('records')[0]
 
-        if data.get('月') is None:
-            raise Exception('未找到测量时间列')
-        month_list = [i if not pd.isna(i) else None for i in data.get('月')]
-        while None in month_list:
-            month_list.remove(None)
+        for i in data:
+            is_pass = 0
+            for key, value in i.items():
+                if not title.get(key):
+                    raise Exception('请使用参照模版上传数据')
+                if pd.isna(value) or value is None:
+                    error_num += 1
+                    is_pass = 1
+                    break
+            if is_pass:
+                continue
+            kwargs = dict()
+            kwargs.update({'断面名称': i.get('断面名称'), '测量时间': i.get('测量时间')})
+            is_have = db.session.query(table).filter_by(**kwargs).first()
+            if not is_have:
+                new_data = table()
+                new_data.add_to_json(i)
+                db.session.add(new_data)
+                db.session.commit()
+                success_num += 1
+            else:
+                skip_num += 1
+        res.update(
+            {'code': 200,
+             'data': {
+                 'success_num': success_num,
+                 'error_num': error_num,
+                 'skip_num': skip_num
+             },
+             'msg': 'success' if not error_num else '请检查数据后重新上传'
+             })
 
-        if data.get('溶解氧(mg/l)') is None:
-            raise Exception('未找到溶解氧列')
-        o2_list = [i if not pd.isna(i) else None for i in data.get('溶解氧(mg/l)')]
-        while None in o2_list:
-            o2_list.remove(None)
-
-        if data.get('高锰酸盐指数(mg/l)') is None:
-            raise Exception('未找到高锰酸盐指数列')
-        km_list = [i if not pd.isna(i) else None for i in data.get('高锰酸盐指数(mg/l)')]
-        while None in km_list:
-            km_list.remove(None)
-
-        if data.get('五日生化需氧量(mg/l)') is None:
-            raise Exception('未找到五日生化需氧量列')
-        d5_list = [i if not pd.isna(i) else None for i in data.get('五日生化需氧量(mg/l)')]
-        while None in d5_list:
-            d5_list.remove(None)
-
-        if data.get('氨氮(mg/l)') is None:
-            raise Exception('未找到氨氮列')
-        nh_list = [i if not pd.isna(i) else None for i in data.get('氨氮(mg/l)')]
-        while None in nh_list:
-            nh_list.remove(None)
-
-        if data.get('总磷(mg/l)') is None:
-            raise Exception('未找到总磷列')
-        p_list = [i if not pd.isna(i) else None for i in data.get('总磷(mg/l)')]
-        while None in p_list:
-            p_list.remove(None)
-    except Exception as e:
-        res.update({'code': 500, 'data': [], 'msg': str(e)})
-        return jsonify(res)
-
-    try:
-        # 格式化测量时间
-        date_list = list()
-        for year, month in zip(year_list, month_list):
-            year = str(int(year))
-            month = str(int(month) if month >= 10 else '0{}'.format(int(month)))
-            date_list.append('{}-{}'.format(year, month))
-
-        # 断面名称, 测量时间, 溶解氧, 高锰酸盐指数, 五日生化需氧量, 氨氮, 总磷
-
-        data = list(zip(name_list, date_list, o2_list, km_list, d5_list, nh_list, p_list))
-
-        # 插入数据到数据库
-        success = 0
-        err = 0
-        skip = 0
-        try:
-            for i in data:
-                name = i[0]
-                date = i[1]
-                if name and date:
-                    kwargs = dict()
-                    kwargs.update({'断面名称': name, '测量时间': date})
-                    is_have = db.session.query(table).filter_by(**kwargs).first()
-                    if not is_have:
-                        new_data = table()
-                        new_data.add_to_list(i)
-                        db.session.add(new_data)
-                        db.session.commit()
-                        success += 1
-                    else:
-                        skip += 1
-                else:
-                    raise Exception('断面名称和测量时间必填')
-        except:
-            err += 1
-
-        res.update({'code': 200, 'data': {'success': success, 'err': err, 'skip': skip}, 'msg': 'success'})
     except Exception as e:
         res.update({'code': 500, 'data': [], 'msg': str(e)})
     # else:
     #     res.update({"code": 403, "msg": "无权限"})
 
     return jsonify(res)
+
+
+@api.route("downloadFile", methods=['GET'])
+def YingManagement_downloadFile():
+    """
+        swagger_from_file: ./swagger_apis/YingManagement/YingManagement_doNew.yml
+        :return:
+    """
+    import os
+    from flask import send_file
+    return send_file(os.path.join(os.path.abspath('.'), 'static/excel/template.xlsx'))
 
 
 @api.route("doRun", methods=['POST'])
