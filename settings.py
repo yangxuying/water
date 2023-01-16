@@ -46,7 +46,8 @@ class Production(Base):
 
 class Development(Base):
     """开发配置文件"""
-    SERVER_NAME = '192.168.1.2:5001'
+    # SERVER_NAME = '192.168.1.2:5001'
+    SERVER_NAME = '127.0.0.1:5001'
     ENV = 'Development'
     DEBUG = True
 

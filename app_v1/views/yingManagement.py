@@ -294,7 +294,6 @@ def YingManagement_doRun():
         :return:
     """
     res = dict()
-
     # if session.get('role'):
     try:
         table = getattr(models, api.name)
@@ -321,16 +320,18 @@ def YingManagement_doRun():
                 data.append(gb)
         # Do run matlab
         matlab_res = runQualityAnalysis([i.get_matlab_data() for i in data], operation)
+        rdata = list()
         # Update data from matlab_res
         if matlab_res is not None:
             for db_obj, level in zip(data, matlab_res):
                 setattr(db_obj, operation, level)
+                rdata.append({'name': db_obj.断面名称, 'date': db_obj.测量时间, 'operation': operation, 'level': level})
             db.session.commit()
         else:
             raise Exception('计算方式错误')
-        res.update({"code": 200, 'data': [], "msg": "success"})
+        res.update({"code": 200, 'data': rdata, "msg": "success"})
     except Exception as e:
-        res.update({'code': 500, 'data': [], 'msg': str(e)})
+        res.update({'code': 500, 'data': rdata, 'msg': str(e)})
     # else:
     #     res.update({"code": 403, "msg": "无权限"})
 
