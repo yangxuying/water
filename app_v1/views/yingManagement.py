@@ -73,7 +73,7 @@ def YingManagement_getNames():
             sur_time = db.session.query(table.测量时间).filter(table.断面名称 == data[i][0]).all()
 
             children = []
-            for n in range(1, len(sur_time)):
+            for n in range(0, len(sur_time)):
                 children.append({"id": '{}-{}'.format(i, n), "label": sur_time[n][0]})
 
             var = {"id": i, "label": data[i][0], "children": children}
